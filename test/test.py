@@ -7,34 +7,38 @@ from cocotb.triggers import ClockCycles
 
 
 @cocotb.test()
-async def test_project(dut):
-    dut._log.info("Start")
+async def test_clock_12h_wrapper(dut):
+    dut._log.info("Starting 12h Clock Wrapper Test")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
-    cocotb.start_soon(clock.start())
+    # Internal clock: 100 KHz (10 us period)
+    cocotb.start_soon(Clock(dut.clk, 10, units="us").start())
 
-    # Reset
-    dut._log.info("Reset")
+    # Initialize inputs
     dut.ena.value = 1
     dut.ui_in.value = 0
     dut.uio_in.value = 0
     dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+
+    # Apply reset (active low)
+    dut._log.info("Applying reset...")
+    await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
+    dut._log.info("Reset released")
 
-    dut._log.info("Test project behavior")
-
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-
-    # Wait for one clock cycle to see the output values
+    # Pulse ui_in[0] as internal clock for DUT
+    dut.ui_in.value = 0b00000000  # clk=0, rst=0
     await ClockCycles(dut.clk, 1)
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    for cycle in range(10000):  # Simulate ~10,000 ticks
+        dut.ui_in.value = dut.ui_in.value ^ 0b00000001  # Toggle clk bit (ui_in[0])
+        await ClockCycles(dut.clk, 1)
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+        hour = int(dut.uo_out.value & 0x0F)
+        am_pm = int((dut.uo_out.value >> 4) & 0x01)
+
+        dut._log.info(f"Cycle {cycle:05d} → Hour: {hour:02d} {'PM' if am_pm else 'AM'}")
+
+        # Optional check: ensure hour is in [1, 12]
+        assert 1 <= hour <= 12, f"Invalid hour {hour} at cycle {cycle}"
+
+    dut._log.info("✅ 12h clock simulation completed successfully")

@@ -1,41 +1,45 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
-# Tiny Tapeout Verilog Project Template
+# 12-Hour Digital Clock — Tiny Tapeout Project
 
-- [Read the documentation for project](docs/info.md)
+- [📝 Project Documentation](docs/info.md)
 
 ## What is Tiny Tapeout?
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+Tiny Tapeout is an educational project that makes it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
 
-To learn more and get started, visit https://tinytapeout.com.
+To learn more and get started, visit [tinytapeout.com](https://tinytapeout.com).
 
-## Set up your Verilog project
+## 🕒 About This Project
 
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
+This project implements a **12-hour digital clock** in Verilog with AM/PM tracking. The core logic counts seconds, minutes, and hours in a traditional 12-hour format and flips the AM/PM bit every 12 hours.
 
-The GitHub action will automatically build the ASIC files using [OpenLane](https://www.zerotoasiccourse.com/terminology/openlane/).
+### Features
 
-## Enable GitHub actions to build the results page
+- 12-hour time format (1–12)
+- AM/PM output
+- Resettable time
+- Wrapper module for Tiny Tapeout compatibility
 
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
+## 🛠️ Set Up Your Verilog Project
 
-## Resources
+1. Add your Verilog files to the `src` folder:
+   - `clock_12h.v`
+   - `tt_um_clock_12h_wrapper.v`
 
-- [FAQ](https://tinytapeout.com/faq/)
-- [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://www.tinytapeout.com/guides/local-hardening/)
+2. Edit [`info.yaml`](info.yaml) to:
+   - Set the correct `top_module`: `tt_um_clock_12h_wrapper`
+   - Add the above source files under `source_files`
+   - Set pinout mappings (e.g., `ui[0]` = clk, `ui[1]` = rst, etc.)
 
-## What next?
+3. Edit [`docs/info.md`](docs/info.md) to describe how your clock works.
 
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
+4. Adapt or write a new testbench in [`test/test.py`](test/test.py) using cocotb:
+   - Simulates toggling clock
+   - Monitors `uo_out` to decode time and AM/PM state
+
+To simulate locally, run:
+
+```bash
+cd test
+make

@@ -1,42 +1,35 @@
-# Makefile
-# See https://docs.cocotb.org/en/stable/quickstart.html for more info
+# Makefile for 12-hour clock project simulation using cocotb
+# More info: https://docs.cocotb.org/en/stable/quickstart.html
 
-# defaults
+# Default simulator and language
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
+
+# Source directory (relative to test dir)
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
 
-ifneq ($(GATES),yes)
+# List all source files here (Verilog)
+PROJECT_SOURCES = \
+  clock_12h.v \
+  tt_um_clock_12h_wrapper.v
 
-# RTL simulation:
-SIM_BUILD				= sim_build/rtl
-VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+# Output directory for simulation builds
+SIM_BUILD = sim_build/rtl
 
-else
+# Compile arguments and sources for RTL simulation
+VERILOG_SOURCES += $(addprefix $(SRC_DIR)/, $(PROJECT_SOURCES))
 
-# Gate level simulation:
-SIM_BUILD				= sim_build/gl
-COMPILE_ARGS    += -DGL_TEST
-COMPILE_ARGS    += -DFUNCTIONAL
-COMPILE_ARGS    += -DSIM
-VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_io/verilog/sg13g2_io.v
-VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_stdcell.v
+# Testbench Verilog (if any, else remove)
+VERILOG_SOURCES += $(PWD)/tb.v  # Optional: remove if only using cocotb test.py
 
-# this gets copied in by the GDS action workflow
-VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
+# Top-level module (Verilog testbench or DUT wrapper)
+TOPLEVEL = tt_um_clock_12h_wrapper
 
-endif
-
-# Allow sharing configuration between design and testbench via `include`:
-COMPILE_ARGS 		+= -I$(SRC_DIR)
-
-# Include the testbench sources:
-VERILOG_SOURCES += $(PWD)/tb.v
-TOPLEVEL = tb
-
-# MODULE is the basename of the Python test file
+# Name of the Python test file (without .py extension)
 MODULE = test
 
-# include cocotb's make rules to take care of the simulator setup
+# Extra compile args if needed
+COMPILE_ARGS += -I$(SRC_DIR)
+
+# Include cocotb build system
 include $(shell cocotb-config --makefiles)/Makefile.sim
